@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Customer Service + Churn Checker</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Customer Service </h1>
+
+    <div id="chatbox"></div>
+
+    <div class="input-row">
+      <input id="userInput" placeholder="Type your message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <h3>Check churn for example customer</h3>
+    <button onclick="checkChurn()">Run example churn check</button>
+    <pre id="churnResult"></pre>
+  </div>
+
+<script>
+async function sendMessage() {
+  const msgInput = document.getElementById("userInput");
+  const msg = msgInput.value.trim();
+  if (!msg) return;
+
+  const box = document.getElementById("chatbox");
+  box.innerHTML += "<div class='user'>You: " + msg + "</div>";
+
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ message: msg })
+  });
+
+  const data = await res.json();
+  box.innerHTML += "<div class='bot'>Bot: " + data.reply + "</div>";
+
+  box.scrollTop = box.scrollHeight;
+  msgInput.value = "";
+}
+
+async function checkChurn() {
+  const example = {
+    "gender": "Female",
+    "SeniorCitizen": 0,
+    "Partner": "Yes",
+    "Dependents": "No",
+    "tenure": 12,
+    "PhoneService": "Yes",
+    "MultipleLines": "No",
+    "InternetService": "DSL",
+    "OnlineSecurity": "No",
+    "OnlineBackup": "Yes",
+    "DeviceProtection": "No",
+    "TechSupport": "No",
+    "StreamingTV": "No",
+    "StreamingMovies": "No",
+    "Contract": "Month-to-month",
+    "PaperlessBilling": "Yes",
+    "PaymentMethod": "Electronic check",
+    "MonthlyCharges": 70.35,
+    "TotalCharges": 845.5
+  };
+
+  const res = await fetch('/api/predict_churn', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(example)
+  });
+
+  const data = await res.json();
+  document.getElementById("churnResult").textContent =
+    JSON.stringify(data, null, 2);
+}
+</script>
+</body>
+</html>
